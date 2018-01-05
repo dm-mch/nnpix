@@ -1,0 +1,70 @@
+---
+# use list for odering
+- experiment_1:
+    # use second part of nn name for define network role/function/name in whole model
+    # example: simple gan should support generator and discriminator
+    network-generator:
+        name: model_res # if not defined - get from experiment name
+        type: resnet # what class/function using for NN creating
+        filters: [64, 32]
+        bn: False
+
+    network-dicriminator:
+        config: path\to\load\yaml and put options from it in this section
+
+    common: # maybe need some common section for share params. I often used batch info in NN create function
+        batch_size: 4
+        batch_shape: 128 # input images crops 128x128
+        zoom: 3
+        channels: 1 #
+
+    train:
+        data:
+            dataloader: default # can be skipped if use default
+            inputs:
+                - path\for\labels\*.npy
+                - path\for\seeds\*.npy # can be just one path
+            multiframe: 4
+            workers: 8
+
+        trainer:
+            type: gan
+            lr: 1e-4
+            # possible LR types
+            #lr: {0:0.001, 100:0.0001, iterpolate: linear}
+            #lr: path/to/file/with/lr/sheduler.txt for manual change on training time
+
+        augmentation: # maybe better suggestions for section style?
+            - resize: [1, 3] # random downscale all labels/seeds from 1 to 3 times
+            # some augmentation can assume that used only for seeds (not labels). Use inputs: [0,1] for prevent
+            - fake_multiframe: {shift: 4, angle: 4}
+            - resize: {value: 3, inputs: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
+            - noise: {value: 1, inputs: 1}
+            - back_transform # return back transform after fake_multiframe
+            - blur: {value: [1,3], inputs: 1}
+            - crop: 5 # Number of random crops per image
+
+        losses:
+            generator: # the second part of name network-generator
+                wgan: 1
+                tvr: 0.001
+                mask: {value: 0.5, type: random-flat} # additional params
+                adversary: {0: 0.01, 100: 0.1, 1000: 1: 10000: 10} # scheduler like for learning rate
+            discriminator:
+                gan_loss: 1
+
+    validate: # maybe under train sections?
+        data:
+            inputs: path/to/validate/*.png
+
+
+# we can comment some section on training time or add new experiment
+experiment-2:
+    network:
+        name: model_res
+        type: resnet
+        filters: [64, 32]
+     # ...
+
+
+...
