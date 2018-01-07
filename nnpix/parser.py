@@ -1,0 +1,46 @@
+import yaml
+
+from common import AttrDict
+
+class Parser:
+    """ Parser for YAML config """
+
+    def __init__(self, file):
+        self._file = file # file path
+        self._current = 0  # current experiment index
+        self._load() # read YAML
+
+
+    def _load(self):
+        with open(self._file, "r") as f:
+            self._cfg = yaml.load(f)
+        assert type(self._cfg) == list, "Type of root cfg should be list, has: {}".format(type(self._cfg))
+        print("Config {} loaded, contain {} experiments, current {}".format(self._file, len(self._cfg), self._current))
+        return self._cfg
+
+    def next_exp(self):
+        """ Get configuration of next experiment """
+        self._load() # reload config from file
+        assert len(self._cfg) > self._current, "Len cfg %i, current %i"%(len(self._cfg), self._current)
+        assert type(self._cfg[self._current]) == dict, "Experiment should be a dictionary"
+        assert len(self._cfg[self._current].keys()) == 1, "Experiment should have only one kes, has: {}".format(self._cfg[self._current].keys())
+
+        name = list(self._cfg[self._current].keys())[0]
+        exp_cfg = self._cfg[self._current][name]
+        self._current += 1
+
+        return ExpConfig(name, exp_cfg)
+
+
+class ExpConfig:
+
+    def __init__(self, name, cfg):
+        self.name = name
+        self._cfg = cfg
+        self.models = self._find_models()
+        self.common = None if 'common' not in cfg.keys() else AttrDict(cfg['common'])
+        self.train = None if 'train' not in cfg.keys() else AttrDict(cfg['train'])
+        self.validate = None if 'validate' not in cfg.keys() else AttrDict(cfg['validate'])
+
+    def _find_models(self):
+        pass
