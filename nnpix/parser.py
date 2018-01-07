@@ -75,4 +75,8 @@ class ExpConfig:
                 if '-' in k:
                     name = k.split('-')[1]
                 models[name] = self._cfg[k]
+                # if model has not attribute name - use default config name
+                if not hasattr(models[name], 'name'):
+                    models[name]['name'] = self.name
+
         return AttrDict(models)

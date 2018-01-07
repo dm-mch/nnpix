@@ -8,6 +8,7 @@
         type: resnet # what class/function using for NN creating
         filters: [64, 32]
         bn: False
+        activation: prelu
 
     network-disc:
         config: path\to\load\yaml and put options from it in this section
@@ -17,6 +18,7 @@
         batch_shape: 128 # input images crops 128x128
         zoom: 3
         channels: 1 #
+        #frames: 4 # for multiframe support
 
     train:
         data:
@@ -24,7 +26,6 @@
             inputs:
                 - path\for\labels\*.npy
                 - path\for\seeds\*.npy # can be just one path
-            multiframe: 4
             workers: 8
 
 
