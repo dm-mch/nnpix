@@ -3,13 +3,13 @@
 - experiment_1:
     # use second part of nn name for define network role/function/name in whole model
     # example: simple gan should support generator and discriminator
-    network-generator:
+    network-gen:
         name: model_res # if not defined - get from experiment name
         type: resnet # what class/function using for NN creating
         filters: [64, 32]
         bn: False
 
-    network-dicriminator:
+    network-disc:
         config: path\to\load\yaml and put options from it in this section
 
     common: # maybe need some common section for share params. I often used batch info in NN create function

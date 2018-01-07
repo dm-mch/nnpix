@@ -34,13 +34,45 @@ class Parser:
 
 class ExpConfig:
 
-    def __init__(self, name, cfg):
+    # config sections name
+    TRAIN = 'train'
+    COMMON = 'common'
+    VALID = 'validate'
+    NN = 'network'
+
+    def __init__(self, name, cfg, common=True):
         self.name = name
         self._cfg = cfg
         self.models = self._find_models()
-        self.common = None if 'common' not in cfg.keys() else AttrDict(cfg['common'])
-        self.train = None if 'train' not in cfg.keys() else AttrDict(cfg['train'])
-        self.validate = None if 'validate' not in cfg.keys() else AttrDict(cfg['validate'])
+        self.m = self.models # shortcut
+
+        self.common = None if self.COMMON not in cfg.keys() else AttrDict(cfg[self.COMMON])
+        self.c = self.common # shortcut
+
+        self.train = None if self.TRAIN not in cfg.keys() else AttrDict(cfg[self.TRAIN])
+        self.t = self.train # shortcut
+
+        self.validate = None if self.VALID not in cfg.keys() else AttrDict(cfg[self.VALID])
+        self.v = self.validate # shortcut
+
+        # all sections except self.common
+        self._sections = [self.train, self.validate] + list(self.models.values())
+
+        if common:
+            # Add common section to all
+            for s in self._sections:
+                s.update(self.common)
 
     def _find_models(self):
-        pass
+        """ Find elements where key name start from self.NN
+            Try to split it by '-' and use right part as name
+            Example: network-generator, name = generator
+            return AttrDict with models configs """
+        models = {}
+        for k in self._cfg.keys():
+            if type(k) == str and k.startswith(self.NN):
+                name = k
+                if '-' in k:
+                    name = k.split('-')[1]
+                models[name] = self._cfg[k]
+        return AttrDict(models)

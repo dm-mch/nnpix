@@ -15,3 +15,7 @@ print(exp.common)
 print(exp.train.lr)
 print(exp.train.aug[1].fake_multiframe.shift)
 
+pprint(exp.models)
+print(exp.m.gen.batch_size)
+print(exp.m.disc.batch_size)
+
