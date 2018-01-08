@@ -8,8 +8,11 @@
         name: model_res # if not defined - will be added from automatically experiment name
         type: resnet # what class/function using for NN creating
         filters: [64, 32]
+        first_conv_kernel: 5
         bn: False
+        bottleneck: True
         activation: prelu
+        blocks: 8
         load_yaml: True
         load_weights: True
 

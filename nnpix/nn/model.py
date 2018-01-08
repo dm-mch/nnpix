@@ -2,6 +2,9 @@ from keras.models import Model
 import nn.nntypes
 import os
 from keras.models import model_from_yaml
+import tensorflow as tf
+
+from nn.layers import PixelShuffle
 
 MODELS_DIR = "../models/"
 
@@ -11,7 +14,7 @@ class NNModel:
     def __init__(self, cfg, input=None):
         self._cfg = cfg
         # If need, try to load from config keras yaml
-        if cfg.get('load_yaml', None) is not None:
+        if cfg.load_yaml is not None:
             self.kmodel = self.load_yaml()
         else:
             # try to get constructor and build
@@ -23,7 +26,7 @@ class NNModel:
             self.kmodel = constructor(cfg, input) # keras model
 
         # load weights if needed
-        if cfg.get('load_weights', None) is not None:
+        if cfg.load_weights is not None:
             self.load_weights()
 
     def get_path(self, suffix=''):
@@ -36,7 +39,8 @@ class NNModel:
     def load_yaml(self, file=None):
         file = self.get_path(suffix="_model.yaml") if file is None else file
         with open(file, 'r') as f:
-            self.kmodel = model_from_yaml(f.read())
+            # in custom_object we should pass all custom layers/modules used in model
+            self.kmodel = model_from_yaml(f.read(), custom_objects={'PixelShuffle': PixelShuffle, 'tf': tf})
             print("Model {} loaded from {}".format(self._cfg.name, file))
         return self.kmodel
 

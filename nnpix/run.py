@@ -32,6 +32,7 @@ m2.summary()
 
 #m.save_yaml()
 #m.save_weights()
+
 vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 print("Total VARS:", len(vars))
 for v in vars:
