@@ -24,10 +24,15 @@ print(exp.m.gen.batch_size)
 print(exp.m.disc.batch_size)
 
 
-v = tf.zeros((4, 100, 100, 1))
-m = NNModel(exp.models.gen, input=v)
-print(m.model)
-#print(m.model.inputs)
-#print(m.model.outputs)
-print(m.model.layers)
-m.model.summary()
+m = NNModel(exp.models.gen)
+m.summary()
+
+m2 = NNModel(exp.models.gen)
+m2.summary()
+
+#m.save_yaml()
+#m.save_weights()
+vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+print("Total VARS:", len(vars))
+for v in vars:
+    print(v.name)

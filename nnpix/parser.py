@@ -14,7 +14,7 @@ class Parser:
     def _load(self):
         with open(self._file, "r") as f:
             self._cfg = yaml.load(f)
-        assert type(self._cfg) == list, "Type of root cfg should be list, has: {}".format(type(self._cfg))
+        assert type(self._cfg) == list, "Type of root {} should be list, has: {}".format(self._file, type(self._cfg))
         print("Config {} loaded, contain {} experiments, current {}".format(self._file, len(self._cfg), self._current))
         return self._cfg
 
@@ -75,8 +75,13 @@ class ExpConfig:
                 if '-' in k:
                     name = k.split('-')[1]
                 models[name] = self._cfg[k]
+
                 # if model has not attribute name - use default config name
-                if not hasattr(models[name], 'name'):
+                if models[name].get('nn_name', None) is None:
+                    models[name]['nn_name'] = name
+
+                # if model has not attribute name - use default config name
+                if models[name].get('name', None) is None:
                     models[name]['name'] = self.name
 
         return AttrDict(models)

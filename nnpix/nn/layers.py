@@ -3,10 +3,11 @@ from keras import backend as K
 import tensorflow as tf
 
 def create_input(cfg, input=None):
+    name = cfg.name + '_input'
     if input is not None:
         shape = list(K.get_session().run(tf.shape(input)))
         print("Input shape", shape)
-        return Input(batch_shape=shape, tensor=input)
+        return Input(batch_shape=shape, tensor=input, name=name)
     else:
         shape = [None, None, None, None]
         # for multiframe we need additional dimension
@@ -25,6 +26,8 @@ def create_input(cfg, input=None):
         if cfg.get('channels', None):
             shape[-1] = cfg.channels
 
-        return Input(batch_shape=shape, name = cfg.name + '_input')
+        return Input(batch_shape=shape, name = name)
+
+
 
 

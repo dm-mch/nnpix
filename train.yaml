@@ -4,11 +4,14 @@
     # use second part of nn name for define network role/function/name in whole model
     # example: simple gan should support generator and discriminator
     network-gen:
-        name: model_res # if not defined - get from experiment name
+        # nn_name: 'gen' will be added automatically if not specified
+        name: model_res # if not defined - will be added from automatically experiment name
         type: resnet # what class/function using for NN creating
         filters: [64, 32]
         bn: False
         activation: prelu
+        load_yaml: True
+        load_weights: True
 
     network-disc:
         config: path\to\load\yaml and put options from it in this section
