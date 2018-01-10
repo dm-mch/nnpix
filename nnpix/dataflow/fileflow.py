@@ -1,5 +1,4 @@
 import numpy as np
-import cv2
 import os
 import re
 import glob
@@ -16,6 +15,7 @@ class EndlessListFlow(DataFromList):
 
     def __init__(self, lst, shuffle=True, endless=True):
         self.endless = endless
+        print("EndlessListFlow length ", len(lst))
         super(EndlessListFlow, self).__init__(lst,shuffle)
 
     def get_data(self):
@@ -32,6 +32,7 @@ class FilesNameFlow(EndlessListFlow):
     """ DataFlow which iterate through file names in folder_tmpl """
 
     def __init__(self, folder_tmpl, **argw):
+        print("FilesNameFlow paths: ", folder_tmpl)
         self.files = glob.glob(folder_tmpl)
         if len(self.files) == 0: raise NoFilesError("No files found in %s"%folder_tmpl)
         super(FilesNameFlow, self).__init__(self.files, **argw)
@@ -44,12 +45,14 @@ class PairFilesNameFlow(EndlessListFlow):
     """
 
     def __init__(self, folder_tmpl1,  folder_tmpl2, **argw):
+        print("PairFilesNameFlow paths: ", folder_tmpl1,  folder_tmpl2)
         self.files1 = glob.glob(folder_tmpl1)
         self.files2 = glob.glob(folder_tmpl2)
         if len(self.files1) == 0: raise NoFilesError("No files found in %s"%folder_tmpl1)
         if len(self.files2) == 0: raise NoFilesError("No files found in %s" % folder_tmpl2)
         # TODO: Support intersection with subfolders
         intersection = set(map(os.path.basename, self.files1)).intersection(set(map(os.path.basename, self.files2)))
+        assert len(intersection) != 0, "No filename intersection between files in folders {} and {}".format(folder_tmpl1, folder_tmpl2)
         path1 = os.path.dirname(self.files1[0])
         path2 = os.path.dirname(self.files2[0])
         self.files = list(map(lambda f: [os.path.join(path1, f), os.path.join(path2, f)], intersection))
@@ -59,6 +62,7 @@ class PairMultiframeFlow(EndlessListFlow):
 
     def __init__(self, folder_single,  folder_multi, frames=4, **argw):
         """ folder_multi should contain files with name foder_single_name_X.ext where X from 0 to frames-1 """
+        print("PairMultiframeFlow paths: ", folder_single,  folder_multi)
         self.files_single = glob.glob(folder_single)
         self.files_multi = glob.glob(folder_multi)
         if len(self.files_single) == 0: raise NoFilesError("No files found in %s"%folder_single)
@@ -77,11 +81,30 @@ class PairMultiframeFlow(EndlessListFlow):
         path_single = os.path.dirname(self.files_single[0])
         path_multi = os.path.dirname(self.files_multi[0])
         multi_all_set = set(map(os.path.basename, self.files_multi))
-        all_frames_exist = filter(lambda f: np.alltrue(i in multi_all_set for i in multiframe(f, frames)), intersection)
+        all_frames_exist = list(filter(lambda f: np.alltrue(i in multi_all_set for i in multiframe(f, frames)), intersection))
+        assert len(all_frames_exist) != 0, "No filename intersection between files in folders {} and {}".format(
+            folder_single, folder_multi)
         self.files = list(map(lambda f: [os.path.join(path_single, f), multiframe(os.path.join(path_multi, f), frames)], all_frames_exist))
         super(PairMultiframeFlow, self).__init__(self.files, **argw)
 
-
+def get_fileflow(cfg, shuffle=True, endless=True):
+    """
+        Get right fileflow based on configuration
+            cfg.inputs - paths template
+            cfg.frames - number of frames for multiframe
+            cfg.indexed_input - using indexed files in second input
+    """
+    fileflow = FilesNameFlow
+    # params for fileflow constructor
+    args = [cfg.inputs[0] if type(cfg.inputs) == list else cfg.inputs]
+    argw = {'shuffle': shuffle, 'endless': endless}
+    if type(cfg.inputs) == list and len(cfg.inputs) >= 2:
+        fileflow = PairFilesNameFlow
+        args.append(cfg.inputs[1])
+        if cfg.indexed_input and cfg.frames and cfg.frames > 1:
+            fileflow = PairMultiframeFlow
+            argw['frames'] = cfg.frames
+    return fileflow(*args, **argw)
 
 if __name__ == "__main__":
     ds = PairMultiframeFlow(r"/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid_HR/*.png",r"/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png", frames=2, endless=False)

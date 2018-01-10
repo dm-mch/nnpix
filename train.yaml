@@ -24,14 +24,15 @@
         batch_shape: 128 # input images crops 128x128
         zoom: 3
         channels: 1 #
-        #frames: 4 # for multiframe support
+        frames: 2 # for multiframe support
 
     train:
         data:
             type: default # can be skipped if use default
             inputs:
-                - path\for\labels\*.npy
-                - path\for\seeds\*.npy # can be just one path
+                - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid_HR/*.png'
+             #   - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png' # can be just one path
+            indexed_input: True # mean files in second input has index name_X.ext X in [0,common.frames-1]
             workers: 8
 
 
