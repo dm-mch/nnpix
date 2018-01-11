@@ -19,8 +19,8 @@ p = Parser(args.file)
 
 exp = p.next_exp()
 
-m = NNModel(exp.models.gen.join(exp.common))
-m.summary()
+#m = NNModel(exp.models.gen.join(exp.common))
+#m.summary()
 #
 # m2 = NNModel(exp.models.gen)
 # m2.summary()

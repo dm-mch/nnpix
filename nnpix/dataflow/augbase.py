@@ -30,6 +30,36 @@ class ImageAugmentorListProxy(ImageAugmentor):
             r.append(self._single_augment(img[i], params))
         return r
 
+
+class CfgImageAugmentor(ImageAugmentor):
+    """ Augmentator with configure """
+
+    def __init__(self, cfg):
+        super(CfgImageAugmentor, self).__init__()
+        cfg = self._get_params(cfg)
+        self._init(cfg)
+
+    def _init(self, params=None):
+        if params:
+            for k, v in params.items():
+                if k != 'self':
+                    setattr(self, k, v)
+
+    def _get_params(self, cfg):
+        """
+            Parse cfg and return dictionary
+            Result will be setted as self attributes
+            In child classes here we can check/set default params
+            Required keys in result:
+                value - main value(param) for augmentator
+                dp_index - int or list or tuple for datapoint index for augmentation
+         """
+        res = {'value': cfg, 'dp_index': None}
+        if isinstance(cfg, dict):
+            res.update(cfg.copy())
+        return res
+
+
 # rewrite for remove assertion: assert img.ndim in [2, 3], img.ndim
 class NotSafeAugmentorList(AugmentorList):
     """
