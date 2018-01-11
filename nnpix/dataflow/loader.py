@@ -1,8 +1,13 @@
 import cv2
 import numpy as np
 
-from tensorpack import ProxyDataFlow
+from tensorpack import ProxyDataFlow, AugmentImageComponents
 from dataflow.fileflow import get_fileflow
+
+from dataflow.fileflow import get_fileflow
+from dataflow.augbase import ImageAugmentorListProxy, NotSafeAugmentorList
+import dataflow.augment as augment
+from common import AttrDict
 
 
 class ReadFilesFlow(ProxyDataFlow):
@@ -33,3 +38,25 @@ class ReadFilesFlow(ProxyDataFlow):
             if type(files) == str: files = [files]
             yield self.list_read(files)
 
+
+def get_train_data(cfg, cfg_common, endless=True):
+    ds_imgs = ReadFilesFlow(get_fileflow(AttrDict({**cfg.data, **cfg_common}), endless=endless))
+
+    if cfg.aug:
+        assert type(cfg.aug) == list,type(cfg.aug)
+
+        augs = []
+        for aug in cfg.aug:
+            name = aug
+            value = None
+            if isinstance(aug, dict):
+                assert len(aug) == 1, aug
+                name = list(aug.keys())[0]
+                value = aug[name]
+            if name == 'resize':
+                augs.append(ImageAugmentorListProxy(augment.Resize(value), shared_params=True))
+
+    print("Agmentators", len(augs))
+
+    ds_augs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList(augs), index=list(range(len(cfg.data.inputs))))
+    return ds_augs

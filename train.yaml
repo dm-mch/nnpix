@@ -31,7 +31,7 @@
             type: default # can be skipped if use default
             inputs:
                 - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid_HR/*.png'
-             #   - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png' # can be just one path
+                - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png' # can be just one path
             indexed_input: True # mean files in second input has index name_X.ext X in [0,common.frames-1]
             workers: 8
 
@@ -46,10 +46,10 @@
             - resize: [1, 3] # random downscale all labels/seeds from 1 to 3 times
             # some augmentation can assume that used only for seeds (not labels). Use inputs: [0,1] for prevent
             - fake-multiframe: {shift: 4, angle: 4}
-            - resize: {value: 3, inputs: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
+            #- resize: {value: 3, inputs: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
+            - blur: {value: [1,3], inputs: 1}
             - noise: {value: 1, inputs: 1}
             - back_transform # return back transform after fake_multiframe
-            - blur: {value: [1,3], inputs: 1}
             - crop: 5 # Number of random crops per image
 
         losses:

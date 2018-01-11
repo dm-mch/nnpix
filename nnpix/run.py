@@ -8,8 +8,7 @@ from parser import Parser
 from common import AttrDict
 
 from nn.model import NNModel
-from dataflow.fileflow import get_fileflow
-from dataflow.loader import ReadFilesFlow
+from dataflow.loader import get_train_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', '-f', type=str, default=None, help="Input file with YAML experiment configuration")
@@ -19,14 +18,6 @@ p = Parser(args.file)
 
 
 exp = p.next_exp()
-print(exp.common)
-print(exp.train.lr)
-print(exp.train.aug[1].fake_multiframe.shift)
-
-pprint(exp.models)
-print(exp.m.gen.batch_size)
-print(exp.m.disc.batch_size)
-
 
 # m = NNModel(exp.models.gen)
 # m.summary()
@@ -42,11 +33,18 @@ print(exp.m.disc.batch_size)
 # for v in vars:
 #     print(v.name)
 
-ds = ReadFilesFlow(get_fileflow(AttrDict({**exp.train.data,**exp.common}), endless = False))
+def list_shape(input):
+    if type(input) == list:
+        r = []
+        for a in input:
+            r.append(list_shape(a))
+        return r
+    else:
+        return input.shape
+
+ds = get_train_data(exp.train, exp.common)
 ds.reset_state()
 itr = ds.get_data()
-for b in range(200):
-    print(b, end=" ")
-    for f in next(itr):
-        print(np.array(f).shape, end=" ")
-    print()
+for i in range(10):
+    b = next(itr)
+    print(i, list_shape(b))
