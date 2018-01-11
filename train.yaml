@@ -34,6 +34,15 @@
                 - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png' # can be just one path
             indexed_input: True # mean files in second input has index name_X.ext X in [0,common.frames-1]
             workers: 8
+            aug: # maybe better suggestions for section style?
+                - resize: [1, 3] # random downscale all labels/seeds from 1 to 3 times
+                # some augmentation can assume that used only for seeds (not labels). Use inputs: [0,1] for prevent
+                - fake-multiframe: {shift: 4, angle: 4}
+                #- resize: {value: 3, inputs: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
+                - blur: {value: [1,3], inputs: 1}
+                - noise: {value: 1, inputs: 1}
+                - back_transform # return back transform after fake_multiframe
+                - crop: 5 # Number of random crops per image
 
 
         type: gan
@@ -42,15 +51,6 @@
         #lr: [schedule: [[0,0.001], [100,0.0001]], interpolate: linear}
         #lr: path/to/file/with/lr/scheduler.txt for manual change on training time
 
-        aug: # maybe better suggestions for section style?
-            - resize: [1, 3] # random downscale all labels/seeds from 1 to 3 times
-            # some augmentation can assume that used only for seeds (not labels). Use inputs: [0,1] for prevent
-            - fake-multiframe: {shift: 4, angle: 4}
-            #- resize: {value: 3, inputs: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
-            - blur: {value: [1,3], inputs: 1}
-            - noise: {value: 1, inputs: 1}
-            - back_transform # return back transform after fake_multiframe
-            - crop: 5 # Number of random crops per image
 
         losses:
             generator: # the second part of name network-generator

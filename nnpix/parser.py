@@ -40,7 +40,7 @@ class ExpConfig:
     VALID = 'validate'
     NN = 'network'
 
-    def __init__(self, name, cfg, common=True):
+    def __init__(self, name, cfg):
         self.name = name
         self._cfg = cfg
         self.models = self._find_models()
@@ -55,13 +55,6 @@ class ExpConfig:
         self.validate = None if self.VALID not in cfg.keys() else AttrDict(cfg[self.VALID])
         self.v = self.validate # shortcut
 
-        # all sections except self.common
-        self._sections = [self.train, self.validate] + list(self.models.values())
-
-        if common:
-            # Add common section to all
-            for s in self._sections:
-                s.update(self.common)
 
     def _find_models(self):
         """ Find elements where key name start from self.NN

@@ -39,8 +39,8 @@ class ReadFilesFlow(ProxyDataFlow):
             yield self.list_read(files)
 
 
-def get_train_data(cfg, cfg_common, endless=True):
-    ds_imgs = ReadFilesFlow(get_fileflow(AttrDict({**cfg.data, **cfg_common}), endless=endless))
+def get_train_data(cfg, endless=True):
+    ds_imgs = ReadFilesFlow(get_fileflow(cfg, endless=endless))
 
     if cfg.aug:
         assert type(cfg.aug) == list,type(cfg.aug)
@@ -58,5 +58,5 @@ def get_train_data(cfg, cfg_common, endless=True):
 
     print("Agmentators", len(augs))
 
-    ds_augs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList(augs), index=list(range(len(cfg.data.inputs))))
+    ds_augs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList(augs), index=list(range(len(cfg.inputs))))
     return ds_augs

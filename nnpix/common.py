@@ -30,6 +30,10 @@ class AttrDict(dict):
             elif type(l[i]) == dict:
                 l[i] = AttrDict(l[i])
 
+    def join(self, d):
+        """ Join with other dict """
+        return AttrDict({**self, **d})
+
     def __getitem__(self, key):
         """ Safe get item. If value non exist - return None """
         if self._safe:

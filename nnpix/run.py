@@ -19,8 +19,8 @@ p = Parser(args.file)
 
 exp = p.next_exp()
 
-# m = NNModel(exp.models.gen)
-# m.summary()
+m = NNModel(exp.models.gen.join(exp.common))
+m.summary()
 #
 # m2 = NNModel(exp.models.gen)
 # m2.summary()
@@ -42,7 +42,7 @@ def list_shape(input):
     else:
         return input.shape
 
-ds = get_train_data(exp.train, exp.common)
+ds = get_train_data(exp.train.data.join(exp.common))
 ds.reset_state()
 itr = ds.get_data()
 for i in range(10):
