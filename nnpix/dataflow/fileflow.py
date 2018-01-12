@@ -5,6 +5,8 @@ import glob
 
 from tensorpack.dataflow import *
 
+__all__ = ['NoFilesError', 'EndlessListFlow', 'FilesNameFlow', 'PairFilesNameFlow', 'PairMultiframeFlow', 'get_fileflow']
+
 class NoFilesError(Exception):
     """ When no file found in provided folder """
     pass

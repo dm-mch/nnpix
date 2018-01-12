@@ -1,6 +1,5 @@
 import yaml
-
-from common import AttrDict
+from .common import AttrDict
 
 class Parser:
     """ Parser for YAML config """

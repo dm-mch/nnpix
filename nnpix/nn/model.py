@@ -1,12 +1,12 @@
 from keras.models import Model
-import nn.nntypes
+from nnpix.nn import nntypes
 import os
 from keras.models import model_from_yaml
 import tensorflow as tf
 
-from nn.layers import PixelShuffle
+from .layers import PixelShuffle
 
-MODELS_DIR = "../models/"
+MODELS_DIR = "./models/"
 
 class NNModel:
     """ Class for NN build from cfg """

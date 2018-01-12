@@ -1,5 +1,7 @@
 from tensorpack.dataflow.imgaug import ImageAugmentor, AugmentorList
-from common import parse_value
+from ...common import parse_value
+
+__all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'NotSafeAugmentorList']
 
 class ImageAugmentorListProxy(ImageAugmentor):
     """ Augment list of images with shared params with input augmentator """

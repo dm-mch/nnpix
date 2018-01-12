@@ -4,11 +4,12 @@ import numpy as np
 
 from pprint import pprint
 
-from parser import Parser
-from common import AttrDict, list_shape
+from nnpix.parser import Parser
+from nnpix.common import AttrDict, list_shape
 
-from nn.model import NNModel
-from dataflow.loader import get_train_data
+from nnpix.nn.model import NNModel
+from nnpix.dataflow import get_train_data
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', '-f', type=str, default=None, help="Input file with YAML experiment configuration")
@@ -22,8 +23,8 @@ exp = p.next_exp()
 #m = NNModel(exp.models.gen.join(exp.common))
 #m.summary()
 #
-# m2 = NNModel(exp.models.gen)
-# m2.summary()
+m2 = NNModel(exp.models.gen)
+m2.summary()
 
 #m.save_yaml()
 #m.save_weights()

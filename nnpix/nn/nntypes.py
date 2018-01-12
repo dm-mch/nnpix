@@ -1,8 +1,8 @@
 from keras.models import Model
 from keras.layers import Input, Conv2D, Add
 
-from nn.layers import create_input, conv2d_bn, residual_block, upscale_pixelshuffle
-from common import extend
+from .layers import create_input, conv2d_bn, residual_block, upscale_pixelshuffle
+from ..common import extend
 
 __all__ = ['nn_resnet']
 
