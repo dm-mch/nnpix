@@ -1,43 +1,13 @@
-import cv2
-import numpy as np
-import copy
 
-from tensorpack import ProxyDataFlow, AugmentImageComponents
+from tensorpack import AugmentImageComponents
 
 from .fileflow import get_fileflow
-from ..common import AttrDict, list_shape, parse_value
+from ..common import parse_value
 from .fileflow import get_fileflow
 from .imgaug import augment, ImageAugmentorListProxy, NotSafeAugmentorList, CropFlow
+from .common import ReadFilesFlow, PrintImageFlow
 
 __all__ = ['get_train_data']
-
-class ReadFilesFlow(ProxyDataFlow):
-
-    def read(self, filename):
-        #print("ReadFilesFlow.read", filename)
-        return cv2.imread(filename)
-        #if img_bgr is not None:
-        #    return cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-
-    def list_read(self, files):
-        r = []
-        for f in files:
-            if type(f) == str:
-                r.append(self.read(f))
-            elif type(f) == list:
-                r.append(self.list_read(f))
-            else:
-                print("WARNING: Unsupported (not str and list)file name type {} for file {}".format(type(f), f))
-                return None
-            if r[-1] is None:
-                print("WARNING: Can not read file {}".format(f))
-                return None
-        return r
-
-    def get_data(self):
-        for files in self.ds.get_data():
-            if type(files) == str: files = [files]
-            yield self.list_read(files)
 
 
 def get_crop_ds(data_cfg, crop_cfg):
@@ -50,6 +20,12 @@ def get_crop_ds(data_cfg, crop_cfg):
         return CropFlow(ds, size, number, scales=scales)
     return wrap
 
+def get_print_ds(print_cfg):
+    def wrap(ds, print_cfg=print_cfg):
+        assert print_cfg.path is not None and print_cfg.each is not None, print_cfg
+        return PrintImageFlow(ds, print_cfg.path, each = print_cfg.each, clear=print_cfg.clear)
+    return wrap
+
 def get_train_data(cfg, endless=True):
     ds_imgs = ReadFilesFlow(get_fileflow(cfg, endless=endless))
 
@@ -57,7 +33,7 @@ def get_train_data(cfg, endless=True):
         assert type(cfg.aug) == list,type(cfg.aug)
 
         augs = []
-        crop_ds_constructor = None
+        constructors = []
         for aug in cfg.aug:
             name = aug
             value = None
@@ -68,12 +44,13 @@ def get_train_data(cfg, endless=True):
             if name == 'resize':
                 augs.append(ImageAugmentorListProxy(augment.Resize(value), shared_params=True))
             if name == 'crop':
-                crop_ds_constructor = get_crop_ds(cfg, value)
+                constructors.append(get_crop_ds(cfg, value))
+            if name == 'print':
+                constructors.append(get_print_ds(value))
 
         print("Agmentators", len(augs))
         ds_imgs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList(augs), index=list(range(len(cfg.inputs))))
 
-        if crop_ds_constructor:
-            ds_imgs = crop_ds_constructor(ds_imgs)
-
+        for ds_create in constructors:
+            ds_imgs = ds_create(ds_imgs)
     return ds_imgs

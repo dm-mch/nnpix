@@ -43,9 +43,10 @@ class Resize(CfgImageAugmentor):
         scale = self.resize
         if self.random:
             scale = self.rng.uniform(*self.resize)
-        return (int(img.shape[1]//scale),int(img.shape[0]//scale))
+        return scale
 
-    def _augment(self, img, new_size):
+    def _augment(self, img, scale):
+        new_size = (int(img.shape[1]//scale),int(img.shape[0]//scale))
         print("Resize input {} new_size {}".format(img.shape, new_size))
         return cv2.resize(img, new_size, interpolation=self.interpolation())
 

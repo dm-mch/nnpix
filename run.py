@@ -20,11 +20,13 @@ p = Parser(args.file)
 
 exp = p.next_exp()
 
+pprint((exp.train.data))
+
 #m = NNModel(exp.models.gen.join(exp.common))
 #m.summary()
 #
-m2 = NNModel(exp.models.gen)
-m2.summary()
+#m2 = NNModel(exp.models.gen)
+#m2.summary()
 
 #m.save_yaml()
 #m.save_weights()
@@ -38,6 +40,6 @@ m2.summary()
 ds = get_train_data(exp.train.data.join(exp.common))
 ds.reset_state()
 itr = ds.get_data()
-for i in range(10):
+for i in range(100):
     b = next(itr)
     print(i, list_shape(b))
