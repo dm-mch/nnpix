@@ -5,7 +5,7 @@ import numpy as np
 from pprint import pprint
 
 from parser import Parser
-from common import AttrDict
+from common import AttrDict, list_shape
 
 from nn.model import NNModel
 from dataflow.loader import get_train_data
@@ -33,14 +33,6 @@ exp = p.next_exp()
 # for v in vars:
 #     print(v.name)
 
-def list_shape(input):
-    if type(input) == list:
-        r = []
-        for a in input:
-            r.append(list_shape(a))
-        return r
-    else:
-        return input.shape
 
 ds = get_train_data(exp.train.data.join(exp.common))
 ds.reset_state()

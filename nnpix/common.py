@@ -50,4 +50,26 @@ class AttrDict(dict):
         return self.__getitem__(key)
 
 
+def parse_value(cfg, **kwargs):
+    res = {'value': cfg}
+    if kwargs:
+        res.update(kwargs)
+    if isinstance(cfg, dict):
+        res['value'] = None
+        res.update(cfg)
+    return AttrDict(res)
+
+def list_shape(input):
+    if input is None:
+        return None
+    if type(input) == list:
+        r = []
+        for a in input:
+            r.append(list_shape(a))
+        return r
+    else:
+        return input.shape
+
+
+
 def extend(lst): return itertools.chain(lst, itertools.repeat(lst[-1]))

@@ -30,8 +30,8 @@
         data:
             type: default # can be skipped if use default
             inputs:
-                - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid_HR/*.png'
-                - '/media/dimakl/Data hdd 1/datasets/div2k/DIV2K_valid2/*.png' # can be just one path
+                - '/media/dimakl/Data hdd 1/datasets/div2k/test/label/*.png'
+                - '/media/dimakl/Data hdd 1/datasets/div2k/test/data/*.png' # can be just one path
             indexed_input: True # mean files in second input has index name_X.ext X in [0,common.frames-1]
             workers: 8
             aug: # maybe better suggestions for section style?
@@ -42,8 +42,7 @@
                 - blur: {value: [1,3], dp_index: 1}
                 - noise: {value: 1, dp_index: 1}
                 - back_transform # return back transform after fake_multiframe
-                - crop: 5 # Number of random crops per image
-
+                - crop: {value: 5, scales: [1, 1]} # Number of random crops per image, scales - how scales crop size
 
         type: gan
         lr: 1e-4

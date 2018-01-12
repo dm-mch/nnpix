@@ -1,4 +1,5 @@
 from tensorpack.dataflow.imgaug import ImageAugmentor, AugmentorList
+from common import parse_value
 
 class ImageAugmentorListProxy(ImageAugmentor):
     """ Augment list of images with shared params with input augmentator """
@@ -54,10 +55,7 @@ class CfgImageAugmentor(ImageAugmentor):
                 value - main value(param) for augmentator
                 dp_index - int or list or tuple for datapoint index for augmentation
          """
-        res = {'value': cfg, 'dp_index': None}
-        if isinstance(cfg, dict):
-            res.update(cfg.copy())
-        return res
+        return parse_value(cfg, dp_index=None)
 
 
 # rewrite for remove assertion: assert img.ndim in [2, 3], img.ndim

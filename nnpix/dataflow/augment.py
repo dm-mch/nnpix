@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from tensorpack.dataflow import ProxyDataFlow
+
 from dataflow.augbase import CfgImageAugmentor
 
 INTERPOLATION = {'lanczos': lambda: cv2.INTER_LANCZOS4,
@@ -22,7 +24,7 @@ class Resize(CfgImageAugmentor):
         return params
 
     def __init__(self, cfg):
-        """ param resize can be:
+        """ cfg.value can be:
             1) list or tuple with len 2 (min,max) - random resize from uniform range
             2) Float - resize on exactly value
         """
@@ -43,8 +45,16 @@ class Resize(CfgImageAugmentor):
         return (int(img.shape[1]//scale),int(img.shape[0]//scale))
 
     def _augment(self, img, new_size):
-        #print("Resize input {} new_size {}".format(img.shape, new_size))
+        print("Resize input {} new_size {}".format(img.shape, new_size))
         return cv2.resize(img, new_size, interpolation=self.interpolation())
+
+
+class Crop(CfgImageAugmentor):
+
+    def _get_params(self, cfg):
+        params = super(Crop, self)._get_params(cfg)
+        params["dp_base"] = params.get('dp_base', 1)
+
 
 
 
