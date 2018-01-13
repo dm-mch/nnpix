@@ -30,11 +30,12 @@
         data:
             inputs:
                 - '/media/dimakl/Data hdd 1/datasets/div2k/test/label/*.png'
-                - '/media/dimakl/Data hdd 1/datasets/div2k/test/data_3x/*.png' # can be just one path
+                - '/media/dimakl/Data hdd 1/datasets/div2k/test/data/*.png' # can be just one path
             indexed_input: True # mean files in second input has index name_X.ext X in [0,common.frames-1]
             workers: 8
             aug: # maybe better suggestions for section style?
                 - resize: {value: [1, 3], interpolation: nearest} # random downscale all labels/seeds from 1 to 3 times
+                - resize: {value: 4, dp_index: 1}
                 # some augmentation can assume that used only for seeds (not labels). Use dp_index: [0,1] for prevent
                 - fake-multiframe: {shift: 4, angle: 4}
                 #- resize: {value: 3, dp_index: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
@@ -42,7 +43,7 @@
                 - noise: {value: 1, dp_index: 1}
                 - back_transform # return back transform after fake_multiframe
                 - normalize: {div: 255, minus: 0.5}
-                - crop: {value: 5, scales: [3, 1]} # Number of random crops per image, scales - how scales crop size
+                - crop: {value: 5, scales: [4, 1]} # Number of random crops per image, scales - how scales crop size
                 - print: {path: './input_debug', each: 5, clear: True}
 
         type: gan

@@ -19,7 +19,7 @@ class Resize(CfgImageAugmentor):
 
     def _get_params(self, cfg, data_cfg):
         params = super(Resize, self)._get_params(cfg, data_cfg)
-        params["interpolation"] = INTERPOLATION['lanczos'] if params.interpolation is not None  else INTERPOLATION[params['interpolation']]
+        params["interpolation"] = INTERPOLATION['lanczos'] if params.interpolation is None  else INTERPOLATION[params['interpolation']]
         params['resize'] = params['value']
         return params
 

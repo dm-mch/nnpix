@@ -22,11 +22,11 @@ exp = p.next_exp()
 
 pprint((exp.train.data))
 
-m = get_model(exp.models.gen.join(exp.common))
-m.summary()
+#m = get_model(exp.models.gen.join(exp.common))
+#m.summary()
 #
-m2 = get_model(exp.models.gen.join(exp.common))
-m2.summary()
+#m2 = get_model(exp.models.gen.join(exp.common))
+#m2.summary()
 
 #m.save_yaml()
 #m.save_weights()

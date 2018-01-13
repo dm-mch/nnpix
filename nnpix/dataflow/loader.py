@@ -32,7 +32,7 @@ def get_train_data(cfg, endless=True):
                 shared = True if not isinstance(value, dict) or value.shared is None else bool(value.shared)
                 index = list(range(len(cfg.inputs))) # all dp indexes
                 if isinstance(value, dict) and value.dp_index is not None:
-                    index = value.dp_index if issubclass(value.dp_index, list) else [value.dp_index]
+                    index = value.dp_index if isinstance(value.dp_index, list) else [value.dp_index]
                 aug = ImageAugmentorListProxy(augs_reg[name](value, cfg), shared_params=shared)
                 # stack dataflow
                 ds_imgs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList([aug]), index=index)
