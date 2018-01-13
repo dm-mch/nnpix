@@ -1,14 +1,20 @@
-from keras.models import Model
-from nnpix.nn import nntypes
 import os
 from keras.models import model_from_yaml
 import tensorflow as tf
 
 from .layers import PixelShuffle
+from ..registry import ModelRegistry
 
 MODELS_DIR = "./models/"
 
-__all__ = ['CfgModel']
+__all__ = ['CfgModel', 'get_model']
+
+def get_model(cfg, input=None):
+    models = ModelRegistry()
+    if models[cfg.type] is not None:
+        return models[cfg.type](cfg, input=input)
+    else:
+        raise Exception("Model '{}' not found".format(cfg.type))
 
 class CfgModel:
     """ Class for NN build from cfg """
@@ -19,30 +25,33 @@ class CfgModel:
         if cfg.load_yaml is not None:
             self.kmodel = self.load_yaml()
         else:
-            # try to get constructor and build
-            try:
-                # find create function in nn.nntypes module by name
-                constructor = getattr(nn.nntypes, 'nn_' + cfg.type)
-            except AttributeError as e:
-                raise NotImplementedError("NN type '{0}' not implemented. For support you need to add function 'nn_{0}'".format(cfg.type))
-            self.kmodel = constructor(cfg, input) # keras model
+            self.kmodel = self.create(cfg, input) # keras model
 
         # load weights if needed
         if cfg.load_weights is not None:
             self.load_weights()
 
+    def creat(self, cfg, input=None):
+        """ Constructor of keras model """
+        # return keras.models.Model()
+        raise NotImplementedError("Should be implemented in child classes")
+
     def get_path(self, suffix=''):
-        dir = os.path.join(MODELS_DIR, self._cfg.name)
+        root = self._cfg.models_dir or MODELS_DIR
+        dir = os.path.join(root, self._cfg.name)
         os.makedirs(dir, exist_ok=True)
         return os.path.join(dir, self._cfg.nn_name + suffix)
 
     # Keras model proxy functions
     # =======================================
-    def load_yaml(self, file=None):
+    def load_yaml(self, file=None, custom_objects=None):
         file = self.get_path(suffix="_model.yaml") if file is None else file
         with open(file, 'r') as f:
             # in custom_object we should pass all custom layers/modules used in model
-            self.kmodel = model_from_yaml(f.read(), custom_objects={'PixelShuffle': PixelShuffle, 'tf': tf})
+            co = {'PixelShuffle': PixelShuffle, 'tf': tf}
+            if custom_objects is not None:
+                co.update(custom_objects)
+            self.kmodel = model_from_yaml(f.read(), custom_objects=co)
             print("Model {} loaded from {}".format(self._cfg.name, file))
         return self.kmodel
 

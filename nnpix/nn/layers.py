@@ -1,4 +1,4 @@
-from keras.layers import Input, Conv2D, BatchNormalization, PReLU, Activation, Add, Lambda, Layer
+from keras.layers import Input, Conv2D, BatchNormalization, PReLU, Activation, Add, Lambda, Layer, Concatenate
 from keras import backend as K
 import tensorflow as tf
 
@@ -86,4 +86,11 @@ def upscale_pixelshuffle(filters, kernel_size, zoom=2, activation=None, bn=False
         return x
     return wrap
 
+def early_fusion(frames):
+    def wrap(input):
+        res = []
+        for i in range(frames):
+            res.append(Lambda(lambda x, i=i: x[:,i])(input))
+        return Concatenate(axis=-1)(res)
+    return wrap
 

@@ -13,8 +13,8 @@
         bottleneck: True
         activation: prelu
         blocks: 8
-        load_yaml: True
-        load_weights: True
+        #load_yaml: True
+        #load_weights: True
 
     network-disc:
         config: path\to\load\yaml and put options from it in this section

@@ -7,7 +7,7 @@ from pprint import pprint
 from nnpix.parser import Parser
 from nnpix.common import AttrDict, list_shape
 
-from nnpix.nn.model import CfgModel
+from nnpix.nn.model import get_model
 from nnpix.dataflow import get_train_data
 
 
@@ -22,11 +22,11 @@ exp = p.next_exp()
 
 pprint((exp.train.data))
 
-m = CfgModel(exp.models.gen.join(exp.common))
+m = get_model(exp.models.gen.join(exp.common))
 m.summary()
 #
-#m2 = CfgModel(exp.models.gen)
-#m2.summary()
+m2 = get_model(exp.models.gen.join(exp.common))
+m2.summary()
 
 #m.save_yaml()
 #m.save_weights()
