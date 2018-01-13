@@ -1,6 +1,8 @@
 """ Common utils """
 import itertools
 
+__all__ = ['AttrDict', 'parse_value', 'list_shape', 'extend']
+
 class AttrDict(dict):
     """ Access dictionary value via attribute. Example d.some_key = 1 """
     def __init__(self, *args, safe=True, **kwargs):
@@ -69,7 +71,6 @@ def list_shape(input):
         return r
     else:
         return input.shape
-
 
 
 def extend(lst): return itertools.chain(lst, itertools.repeat(lst[-1]))

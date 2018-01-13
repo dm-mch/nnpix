@@ -6,7 +6,7 @@ import copy
 
 from tensorpack.dataflow import ProxyDataFlow
 
-__all__ = ['ReadFilesFlow', 'PrintImageFlow']
+__all__ = ['ReadFilesFlow']
 
 class ReadFilesFlow(ProxyDataFlow):
 
@@ -36,31 +36,3 @@ class ReadFilesFlow(ProxyDataFlow):
             if type(files) == str: files = [files]
             yield self.list_read(files)
 
-class PrintImageFlow(ProxyDataFlow):
-    """ For debug usage. Save flow images in folder """
-
-    def __init__(self, ds, path, each=1, clear=None):
-        super(PrintImageFlow, self).__init__(ds)
-        self.path = path
-        self.each = each
-        if clear and os.path.isdir(self.path):
-            shutil.rmtree(self.path, ignore_errors=True)
-        os.makedirs(self.path, exist_ok=True)
-
-
-    def print(self, dp, index):
-        for n,img in enumerate(dp):
-            if type(img) == list:
-                # try to concatinate list in one image
-                if isinstance(img[0], np.ndarray) and img[0].ndim in [2,3]:
-                    shape = img[0].shape
-                    if np.alltrue([isinstance(i, np.ndarray) and i.shape == shape for i in img]):
-                        img = np.concatenate(img, axis=1)
-            if isinstance(img, np.ndarray) and img.ndim in [2,3]:
-                cv2.imwrite(os.path.join(self.path, "%i_%i.png"%(index, n)), img)
-
-    def get_data(self):
-        for i, d in enumerate(super(PrintImageFlow, self).get_data()):
-            if i % self.each == 0:
-                self.print(d, i)
-            yield d

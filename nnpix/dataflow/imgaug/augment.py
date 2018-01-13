@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from tensorpack.dataflow import ProxyDataFlow
+from ...registry import AugmentRegistry
 
 from .base import CfgImageAugmentor
 
@@ -13,24 +14,21 @@ INTERPOLATION = {'lanczos': lambda: cv2.INTER_LANCZOS4,
                'nearest': lambda: cv2.INTER_NEAREST,
                'random': lambda: np.random.choice([cv2.INTER_LANCZOS4,cv2.INTER_CUBIC,cv2.INTER_LINEAR, cv2.INTER_NEAREST]) }
 
+
 class Resize(CfgImageAugmentor):
 
-    def _get_params(self, cfg):
-        params = super(Resize, self)._get_params(cfg)
-        if 'interpolation' not in params:
-            params["interpolation"] = INTERPOLATION['lanczos']
-        else:
-            assert params['interpolation'] in INTERPOLATION, params['interpolation']
-            params["interpolation"] = INTERPOLATION[params['interpolation']]
+    def _get_params(self, cfg, data_cfg):
+        params = super(Resize, self)._get_params(cfg, data_cfg)
+        params["interpolation"] = INTERPOLATION['lanczos'] if params.interpolation is not None  else INTERPOLATION[params['interpolation']]
+        params['resize'] = params['value']
         return params
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, data_cfg):
         """ cfg.value can be:
             1) list or tuple with len 2 (min,max) - random resize from uniform range
             2) Float - resize on exactly value
         """
-        super(Resize, self).__init__(cfg)
-        self.resize = self.value
+        super(Resize, self).__init__(cfg, data_cfg)
         self.random = False
         if type(self.resize) == list or type(self.resize) == tuple:
             assert len(self.resize) == 2, self.resize
@@ -51,6 +49,8 @@ class Resize(CfgImageAugmentor):
         return cv2.resize(img, new_size, interpolation=self.interpolation())
 
 
+# Registry all shared augmentation in one storage
+AugmentRegistry().update({'resize': Resize})
 
 
 

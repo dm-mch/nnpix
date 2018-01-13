@@ -1,7 +1,8 @@
 from tensorpack.dataflow.imgaug import ImageAugmentor, AugmentorList
+from tensorpack.dataflow import ProxyDataFlow
 from ...common import parse_value
 
-__all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'NotSafeAugmentorList']
+__all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'CfgDataFlow', 'NotSafeAugmentorList']
 
 class ImageAugmentorListProxy(ImageAugmentor):
     """ Augment list of images with shared params with input augmentator """
@@ -37,9 +38,9 @@ class ImageAugmentorListProxy(ImageAugmentor):
 class CfgImageAugmentor(ImageAugmentor):
     """ Augmentator with configure """
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, data_cfg):
         super(CfgImageAugmentor, self).__init__()
-        cfg = self._get_params(cfg)
+        cfg = self._get_params(cfg, data_cfg)
         self._init(cfg)
 
     def _init(self, params=None):
@@ -48,7 +49,7 @@ class CfgImageAugmentor(ImageAugmentor):
                 if k != 'self':
                     setattr(self, k, v)
 
-    def _get_params(self, cfg):
+    def _get_params(self, cfg, data_cfg):
         """
             Parse cfg and return dictionary
             Result will be setted as self attributes
@@ -58,6 +59,31 @@ class CfgImageAugmentor(ImageAugmentor):
                 dp_index - int or list or tuple for datapoint index for augmentation
          """
         return parse_value(cfg, dp_index=None)
+
+class CfgDataFlow(ProxyDataFlow):
+    """ ProxyDataFlow with configure"""
+
+    def __init__(self, ds, cfg, data_cfg):
+        super(CfgDataFlow, self).__init__(ds)
+        cfg = self._get_params(cfg, data_cfg)
+        self._init(cfg)
+
+    def _init(self, params=None):
+        if params:
+            for k, v in params.items():
+                if k != 'self':
+                    setattr(self, k, v)
+
+    def _get_params(self, cfg, data_cfg):
+        """
+            Parse cfg and return dictionary
+            Result will be setted as self attributes
+            In child classes here we can check/set default params
+            Required keys in result:
+                value - main value(param) for augmentator
+         """
+        return parse_value(cfg)
+
 
 
 # rewrite for remove assertion: assert img.ndim in [2, 3], img.ndim

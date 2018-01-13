@@ -38,7 +38,7 @@
                 # some augmentation can assume that used only for seeds (not labels). Use dp_index: [0,1] for prevent
                 - fake-multiframe: {shift: 4, angle: 4}
                 #- resize: {value: 3, dp_index: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
-                - blur: {value: [1,3], dp_index: 1}
+                - blur: {value: [1,3], dp_index: 1, shared: False}
                 - noise: {value: 1, dp_index: 1}
                 - back_transform # return back transform after fake_multiframe
                 - normalize: {div: 255, minus: 0.5}

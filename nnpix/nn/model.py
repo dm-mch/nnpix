@@ -8,7 +8,9 @@ from .layers import PixelShuffle
 
 MODELS_DIR = "./models/"
 
-class NNModel:
+__all__ = ['CfgModel']
+
+class CfgModel:
     """ Class for NN build from cfg """
 
     def __init__(self, cfg, input=None):
