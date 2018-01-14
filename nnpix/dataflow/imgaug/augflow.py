@@ -1,11 +1,11 @@
 import os
 import cv2
+import copy
 import shutil
 import numpy as np
 
-from tensorpack.utils.utils import get_rng
-
 from .base import CfgDataFlow
+from .augment import INTERPOLATION
 from ...common import list_shape
 from ...registry import DataFlowRegistry
 
@@ -24,12 +24,8 @@ class CropFlow(CfgDataFlow):
         crop_cfg['number'] = crop_cfg.value
         assert type(data_cfg.inputs) == list
         # list of scale factors for crop size, If 0 - no crop
-        crop_cfg['scales'] = crop_cfg.scales if crop_cfg.scales is not None else [1] * len(data_cfg.inputs)
+        crop_cfg['scales'] = crop_cfg.scales if crop_cfg.scales is not None else [1, 1]
         return crop_cfg
-
-    def reset_state(self):
-        super(CropFlow, self).reset_state()
-        self.rng = get_rng(self)
 
     def _crop(self, img, x, y, size):
         if type(img) == list:
@@ -97,4 +93,74 @@ class PrintImageFlow(CfgDataFlow):
                 self.print(d, i)
             yield d
 
-DataFlowRegistry().update({'crop': CropFlow, 'print': PrintImageFlow})
+class CopyFlow(CfgDataFlow):
+    def _get_params(self, clone_cfg, data_cfg):
+        clone_cfg = super(CopyFlow, self)._get_params(clone_cfg, data_cfg)
+        clone_cfg['clone_index'] = clone_cfg.value or 0
+        return clone_cfg
+
+    def get_data(self):
+        for i, d in enumerate(super(CopyFlow, self).get_data()):
+            if type(d) != list:
+                d = [d]
+            d.append(d[self.clone_index].copy())
+            yield d
+
+def get_M(sx, sy, a):
+    """ Transformation matrix for cv2.warpAffine """
+    a = (a * np.pi) / 180.  # degree to radian
+    return np.array([[np.cos(a), -np.sin(a), sx], [np.sin(a), np.cos(a), sy]])
+
+
+
+class FakeMultiframe(CfgDataFlow):
+    def _get_params(self, cfg, data_cfg):
+        params = super(FakeMultiframe, self)._get_params(cfg, data_cfg)
+        params['shift'] = params.shift or 0
+        params['angle'] = params.angle or 0
+        params['nonback_shift'] = params.nonback_shift or 0
+        params['nonback_angle'] = params.nonback_angle or 0
+        params["interpolation"] = INTERPOLATION['lanczos'] if params.interpolation is None  else INTERPOLATION[params['interpolation']]
+        params['frames'] = data_cfg.frames
+        if params.dp_index is None:
+            params['dp_index'] = 1 # by default use for
+        assert data_cfg.frames is not None and data_cfg.frames > 1
+        return params
+
+    def _make_multiframe(self, img):
+        assert img.ndim in [2, 3]
+
+        back_params = []
+        result = []
+        for n in range(self.frames):
+            r = [0, 0, 0] # [shift_x, shift_y, angle]
+            back_params.append([0,0,0])
+            if self.shift:
+                r[0] += self.rng.uniform(-self.shift, self.shift)
+                r[1] += self.rng.uniform(-self.shift, self.shift)
+                back_params[-1][0] = r[0]
+                back_params[-1][1] = r[1]
+            if self.angle:
+                r[2] += self.rng.uniform(-self.angle, self.angle)
+                back_params[-1][2] = r[2]
+            # shift and angle which is not in backtransform
+            if self.nonback_shift:
+                r[0] += self.rng.uniform(-self.nonback_shift, self.nonback_shift)
+                r[1] += self.rng.uniform(-self.nonback_shift, self.nonback_shift)
+            if self.nonback_angle:
+                r[2] += self.rng.uniform(-self.nonback_angle, self.nonback_angle)
+            # do transformation
+            result.append(cv2.warpAffine(img, get_M(*r), (img.shape[1], img.shape[0]), flags=self.interpolation()))
+        return result, back_params
+
+    def get_data(self):
+        for i, d in enumerate(super(FakeMultiframe, self).get_data()):
+            d[self.dp_index], back_params = self._make_multiframe(d[self.dp_index])
+            # add to back of datapoint special dict for share params between dataflows
+            if not isinstance(d[-1], dict) or not d[-1].get('custom_params', False) is True:
+                d.append({'custom_params': True}) # key for find this dict in dp
+            #print(back_params)
+            d[-1]['fake_multiframe'] = back_params
+            yield d
+
+DataFlowRegistry().update({'crop': CropFlow, 'print': PrintImageFlow, 'copy': CopyFlow, 'fake_multiframe': FakeMultiframe})

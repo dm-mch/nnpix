@@ -1,5 +1,7 @@
 from tensorpack.dataflow.imgaug import ImageAugmentor, AugmentorList
 from tensorpack.dataflow import ProxyDataFlow
+from tensorpack.utils.utils import get_rng
+
 from ...common import parse_value
 
 __all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'CfgDataFlow', 'NotSafeAugmentorList']
@@ -73,6 +75,10 @@ class CfgDataFlow(ProxyDataFlow):
             for k, v in params.items():
                 if k != 'self':
                     setattr(self, k, v)
+
+    def reset_state(self):
+        super(CfgDataFlow, self).reset_state()
+        self.rng = get_rng(self)
 
     def _get_params(self, cfg, data_cfg):
         """

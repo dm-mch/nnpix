@@ -6,7 +6,7 @@ from ...registry import AugmentRegistry
 
 from .base import CfgImageAugmentor
 
-__all__ = ['Resize']
+__all__ = ['Resize', 'INTERPOLATION']
 
 INTERPOLATION = {'lanczos': lambda: cv2.INTER_LANCZOS4,
                'bicubic': lambda: cv2.INTER_CUBIC,

@@ -1,5 +1,6 @@
 """ Common utils """
 import itertools
+import numpy as np
 
 __all__ = ['AttrDict', 'parse_value', 'list_shape', 'extend']
 
@@ -69,8 +70,10 @@ def list_shape(input):
         for a in input:
             r.append(list_shape(a))
         return r
-    else:
+    elif isinstance(input, np.ndarray):
         return input.shape
+    else:
+        return input
 
 
 def extend(lst): return itertools.chain(lst, itertools.repeat(lst[-1]))
