@@ -3,7 +3,7 @@ from pprint import pprint
 from tensorpack import AugmentImageComponents
 
 from .fileflow import get_fileflow
-from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList
+from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList, RemoveCustomParamsFlow
 from .common import ReadFilesFlow
 from ..registry import AugmentRegistry, DataFlowRegistry
 
@@ -21,9 +21,11 @@ def get_train_data(cfg, endless=True):
         flow_reg = DataFlowRegistry() # dataflows
         print("augs_reg", augs_reg._reg)
         print("flows_reg", flow_reg._reg)
+        need_remove_custom_params = False
         for aug in cfg.aug:
             name = aug
             value = None
+
             if isinstance(aug, dict):
                 assert len(aug) == 1, aug
                 name = list(aug.keys())[0]
@@ -38,6 +40,11 @@ def get_train_data(cfg, endless=True):
                 ds_imgs = AugmentImageComponents(ds_imgs, NotSafeAugmentorList([aug]), index=index)
             elif flow_reg[name] is not None:
                 ds_imgs = flow_reg[name](ds_imgs, value, cfg)
+                if ds_imgs.is_add_custom_params():
+                    need_remove_custom_params = True
             else:
                 print("WARNING: unsuported augmetator: ", name, "skiped...")
+        if need_remove_custom_params:
+            print("Create RemoveCustomParamsFlow")
+            ds_imgs = RemoveCustomParamsFlow(ds_imgs)
     return ds_imgs

@@ -154,7 +154,7 @@ class FakeMultiframe(CfgDataFlow):
         return result, back_params
 
     def get_data(self):
-        for i, d in enumerate(super(FakeMultiframe, self).get_data()):
+        for d in super(FakeMultiframe, self).get_data():
             d[self.dp_index], back_params = self._make_multiframe(d[self.dp_index])
             # add to back of datapoint special dict for share params between dataflows
             if not isinstance(d[-1], dict) or not d[-1].get('custom_params', False) is True:
@@ -163,4 +163,36 @@ class FakeMultiframe(CfgDataFlow):
             d[-1]['fake_multiframe'] = back_params
             yield d
 
-DataFlowRegistry().update({'crop': CropFlow, 'print': PrintImageFlow, 'copy': CopyFlow, 'fake_multiframe': FakeMultiframe})
+    def is_add_custom_params(self):
+        return True
+
+class BackTransform(CfgDataFlow):
+
+    def _get_params(self, cfg, data_cfg):
+        params = super(BackTransform, self)._get_params(cfg, data_cfg)
+        params['scale'] = params.value or 1
+        params["interpolation"] = INTERPOLATION['lanczos'] if params.interpolation is None  else INTERPOLATION[params['interpolation']]
+        if params.dp_index is None:
+            params['dp_index'] = 1 # by default use for
+        return params
+
+    def _back_transform(self, imgs, params):
+        assert len(imgs) == len(params)
+        res = []
+        for i,img in enumerate(imgs):
+            p = [-params[i][0]/self.scale, -params[i][1]/self.scale, -params[i][2]]
+            res.append(cv2.warpAffine(img, get_M(*p), (img.shape[1], img.shape[0]), flags=self.interpolation()))
+        return res
+
+    def get_data(self):
+        for d in super(BackTransform, self).get_data():
+            if isinstance(d[-1], dict) and 'fake_multiframe' in d[-1]:
+                d[self.dp_index] = self._back_transform(d[self.dp_index], d[-1]['fake_multiframe'])
+            yield d
+
+
+DataFlowRegistry().update({'crop': CropFlow,
+                           'print': PrintImageFlow,
+                           'copy': CopyFlow,
+                           'fake_multiframe': FakeMultiframe,
+                           'back_transform': BackTransform})
