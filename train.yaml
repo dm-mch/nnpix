@@ -43,17 +43,17 @@
                  aug: # maybe better suggestions for section style?
                     - resize: {value: [1, 3], interpolation: nearest} # random downscale all labels/seeds from 1 to 3 times
 
-            workers: 4
-            shuffle_buffer: 30
+            #workers: 4
+            #shuffle_buffer: 30
             aug: # maybe better suggestions for section style?
                 - copy: 0 # copy dp[0] to end of dp list: dp = dp + [dp[0].copy]
                 - fake-multiframe: {shift: 4, angle: 2, nonback_shift: 2, nonback_angle: 0}
                 - resize: {value: 2, dp_index: 1}
                 #- resize: {value: 3, dp_index: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
-                - blur: {value: [1,3], dp_index: 1, shared: False}
-                - noise: {value: 1, dp_index: 1}
+                - blur: {value: [1,10], dp_index: 1, shared: False}
+                - normal-noise: {value: [0,20], clip: [0,255], dp_index: 1, shared: False}
                 - back_transform: 2 # scale factor for back-transform
-                - normalize: {div: 255, minus: 0.5}
+                #- normalize: {div: 255, minus: 0.5}
                 - crop: {value: 5, scales: [2, 1]} # Number of random crops per image, scales - how scales crop size
                 - print: {path: './input_debug', each: 5, clear: True}
 

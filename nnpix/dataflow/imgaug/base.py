@@ -100,7 +100,6 @@ class RemoveCustomParamsFlow(ProxyDataFlow):
     def get_data(self):
         for d in super(RemoveCustomParamsFlow, self).get_data():
             if isinstance(d[-1], dict) and 'custom_params' in d[-1]:
-                print('del d[-1]')
                 d = d[:-1]
             yield d
 

@@ -45,8 +45,6 @@ def build_flow(input_flow, cfg, common_cfg, endless=True):
         assert type(cfg.aug) == list,type(cfg.aug)
         augs_reg = AugmentRegistry() # storage of all possible augmentators
         flow_reg = DataFlowRegistry() # dataflows
-        print("augs_reg", augs_reg._reg)
-        print("flows_reg", flow_reg._reg)
         need_remove_custom_params = False
         for aug in cfg.aug:
             name = aug

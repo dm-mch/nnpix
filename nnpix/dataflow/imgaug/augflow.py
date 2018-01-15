@@ -56,7 +56,7 @@ class CropFlow(CfgDataFlow):
     def get_data(self):
         for dp in super(CropFlow, self).get_data():
             for n in range(self.number):
-                print("crop:", list_shape(dp))
+                #print("crop:", list_shape(dp))
                 yield self._get_crops(dp)
 
 
