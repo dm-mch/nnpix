@@ -5,6 +5,8 @@ import time
 
 from pprint import pprint
 
+from tensorpack import BatchData, TestDataSpeed
+
 from nnpix.parser import Parser
 from nnpix.common import AttrDict, list_shape
 
@@ -40,10 +42,13 @@ pprint((exp.train.data))
 
 t = time.time()
 ds = get_train_data(exp.train.data, exp.common)
-ds.reset_state()
-itr = ds.get_data()
-for i in range(100):
-    b = next(itr)
-    print(i, list_shape(b))
+#ds.reset_state()
+#itr = ds.get_data()
+#for i in range(100):
+#    b = next(itr)
+#    print(i, list_shape(b))
+
+ds1 = BatchData(ds, 4, use_list=True)
+TestDataSpeed(ds1, 200).start()
 
 print("Total time", time.time() - t)
