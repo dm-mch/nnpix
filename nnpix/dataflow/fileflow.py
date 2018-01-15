@@ -15,10 +15,19 @@ class NoFilesError(Exception):
 class EndlessListFlow(DataFromList):
     """ Endless dataflow through list """
 
-    def __init__(self, lst, shuffle=True, endless=True):
+    def __init__(self, lst, shuffle=True, endless=True, size=None):
         self.endless = endless
+        self._size = None
+        if endless: # For endless we can set any size, can be useful for mix proportion
+            self._size = size
         print("EndlessListFlow length ", len(lst))
         super(EndlessListFlow, self).__init__(lst,shuffle)
+
+    def size(self):
+        if self._size:
+            return self._size
+        else:
+            return super(EndlessListFlow, self).size()
 
     def get_data(self):
         if self.endless:
@@ -89,7 +98,7 @@ class PairMultiframeFlow(EndlessListFlow):
         self.files = list(map(lambda f: [os.path.join(path_single, f), multiframe(os.path.join(path_multi, f), frames)], all_frames_exist))
         super(PairMultiframeFlow, self).__init__(self.files, **argw)
 
-def get_fileflow(cfg, shuffle=True, endless=True):
+def get_fileflow(cfg, common_cfg, shuffle=True, endless=True):
     """
         Get right fileflow based on configuration
             cfg.inputs - paths template
@@ -99,7 +108,7 @@ def get_fileflow(cfg, shuffle=True, endless=True):
     fileflow = FilesNameFlow
     # params for fileflow constructor
     args = [cfg.inputs[0] if type(cfg.inputs) == list else cfg.inputs]
-    argw = {'shuffle': shuffle, 'endless': endless}
+    argw = {'shuffle': shuffle, 'endless': endless, 'size': cfg.size}
     if type(cfg.inputs) == list and len(cfg.inputs) >= 2:
         fileflow = PairFilesNameFlow
         args.append(cfg.inputs[1])

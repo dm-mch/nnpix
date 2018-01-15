@@ -1,19 +1,45 @@
+import numpy as np
 from pprint import pprint
 
-from tensorpack import AugmentImageComponents
+from tensorpack import AugmentImageComponents, RandomMixData
 
 from .fileflow import get_fileflow
 from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList, RemoveCustomParamsFlow
-from .common import ReadFilesFlow
+from .common import ReadFilesFlow, EndlessData
 from ..registry import AugmentRegistry, DataFlowRegistry
 
 
 __all__ = ['get_train_data']
 
 
+def get_train_data(cfg, common_cfg, endless=True):
+    assert cfg.inputs is not None and type(cfg.inputs) == list, cfg
 
-def get_train_data(cfg, endless=True):
-    ds_imgs = ReadFilesFlow(get_fileflow(cfg, endless=endless))
+    if np.alltrue([isinstance(s, str) for s in cfg.inputs]):
+        # all inputs are paths: read files from there
+        file_flow = get_fileflow(cfg, common_cfg, endless=endless)
+        #print("Files input size", file_flow.size())
+        input_flow = ReadFilesFlow(file_flow)
+        #print("Readed input size", input_flow.size())
+        input_flow = build_flow(input_flow, cfg, common_cfg)
+        #print("Augmented input size", input_flow.size())
+    elif np.alltrue([isinstance(d, dict) for d in cfg.inputs]):
+        # all inputs are data
+        dss = [get_train_data(inpt_cfg, common_cfg, endless=endless) for inpt_cfg in cfg.inputs]
+        #print("DS for mix:", dss)
+        print("Sizes:", [ds.size() for ds in dss])
+        input_flow = RandomMixData(dss)
+        print("Mixed size:", input_flow.size())
+        if endless:
+            input_flow = EndlessData(input_flow)
+        input_flow = build_flow(input_flow, cfg, common_cfg)
+    else:
+        raise Exception("Not supported types of inputs, should be all paths or all dataflow cfg dictionary" + str(cfg))
+    return input_flow
+
+def build_flow(input_flow, cfg, common_cfg):
+    cfg = cfg.join(common_cfg)
+    ds_imgs = input_flow
 
     if cfg.aug:
         assert type(cfg.aug) == list,type(cfg.aug)

@@ -37,7 +37,7 @@ pprint((exp.train.data))
 #     print(v.name)
 
 
-ds = get_train_data(exp.train.data.join(exp.common))
+ds = get_train_data(exp.train.data, exp.common)
 ds.reset_state()
 itr = ds.get_data()
 for i in range(100):

@@ -1,8 +1,4 @@
-import os
-import shutil
 import cv2
-import numpy as np
-import copy
 
 from tensorpack.dataflow import ProxyDataFlow
 
@@ -35,4 +31,35 @@ class ReadFilesFlow(ProxyDataFlow):
         for files in self.ds.get_data():
             if type(files) == str: files = [files]
             yield self.list_read(files)
+
+
+class EndlessData(ProxyDataFlow):
+    """ Take data points from another DataFlow and produce them until
+        it's exhausted for certain amount of times. i.e.:
+        dp1, dp2, .... dpn, dp1, dp2, ....dpn
+    """
+
+    def __init__(self, ds, nr=-1):
+        """
+        Args:
+            ds (DataFlow): input DataFlow
+            nr (int): number of times to repeat ds.
+                Set to -1 to repeat ``ds`` infinite times.
+        """
+        self.nr = nr
+        super(EndlessData, self).__init__(ds)
+
+    def size(self):
+        return self.ds.size() # NOT AN REAL SIZE, BECAUSE REPEATED
+
+    def get_data(self):
+        if self.nr == -1:
+            while True:
+                for dp in self.ds.get_data():
+                    yield dp
+        else:
+            for _ in range(self.nr):
+                for dp in self.ds.get_data():
+                    yield dp
+
 
