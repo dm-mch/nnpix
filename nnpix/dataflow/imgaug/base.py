@@ -73,7 +73,7 @@ class CfgDataFlow(ProxyDataFlow):
     def _init(self, params=None):
         if params:
             for k, v in params.items():
-                if k != 'self':
+                if k not in ['self', 'size']:
                     setattr(self, k, v)
 
     def reset_state(self):

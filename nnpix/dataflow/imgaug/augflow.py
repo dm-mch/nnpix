@@ -19,7 +19,7 @@ class CropFlow(CfgDataFlow):
         crop_cfg = super(CropFlow, self)._get_params(crop_cfg, data_cfg)
         print("CropFloe data_cfg", data_cfg)
         # crop size
-        crop_cfg['size'] = data_cfg.batch_shape
+        crop_cfg['batch_shape'] = data_cfg.batch_shape
         # how many crops to do from one image
         crop_cfg['number'] = crop_cfg.value
         assert type(data_cfg.inputs) == list
@@ -39,16 +39,16 @@ class CropFlow(CfgDataFlow):
     def _get_crops(self, dp):
         base_index = self.scales.index(1) # should contain 1
         base_shape = dp[base_index].shape if  type(dp[base_index]) != list else dp[base_index][0].shape # first img shape
-        if base_shape[0] <= self.size or base_shape[1] <= self.size: # small size for crop
+        if base_shape[0] <= self.batch_shape or base_shape[1] <= self.batch_shape: # small size for crop
             print("Image too small", base_shape)
             return None
-        x = self.rng.randint(0, base_shape[1] - self.size)
-        y = self.rng.randint(0, base_shape[0] - self.size)
+        x = self.rng.randint(0, base_shape[1] - self.batch_shape)
+        y = self.rng.randint(0, base_shape[0] - self.batch_shape)
         result = []
         for i in range(len(dp)):
             if i < len(self.scales) and self.scales[i] > 0:
                 s = self.scales[i]
-                result.append(self._crop(dp[i], int(x * s), int(y * s), int(self.size * s)))
+                result.append(self._crop(dp[i], int(x * s), int(y * s), int(self.batch_shape * s)))
             else:
                 result.append(copy.copy(dp[i]))
         return result

@@ -43,7 +43,8 @@
                  aug: # maybe better suggestions for section style?
                     - resize: {value: [1, 3], interpolation: nearest} # random downscale all labels/seeds from 1 to 3 times
 
-            workers: 8
+            workers: 4
+            shuffle_buffer: 30
             aug: # maybe better suggestions for section style?
                 - copy: 0 # copy dp[0] to end of dp list: dp = dp + [dp[0].copy]
                 - fake-multiframe: {shift: 4, angle: 2, nonback_shift: 2, nonback_angle: 0}

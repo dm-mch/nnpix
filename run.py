@@ -1,6 +1,7 @@
 import argparse
 import tensorflow as tf
 import numpy as np
+import time
 
 from pprint import pprint
 
@@ -37,9 +38,12 @@ pprint((exp.train.data))
 #     print(v.name)
 
 
+t = time.time()
 ds = get_train_data(exp.train.data, exp.common)
 ds.reset_state()
 itr = ds.get_data()
-for i in range(100):
+for i in range(1000):
     b = next(itr)
     print(i, list_shape(b))
+
+print("Total time", time.time() - t)

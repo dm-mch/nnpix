@@ -1,7 +1,7 @@
 import numpy as np
 from pprint import pprint
 
-from tensorpack import AugmentImageComponents, RandomMixData
+from tensorpack import AugmentImageComponents, RandomMixData, PrefetchDataZMQ, LocallyShuffleData
 
 from .fileflow import get_fileflow
 from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList, RemoveCustomParamsFlow
@@ -21,7 +21,7 @@ def get_train_data(cfg, common_cfg, endless=True):
         #print("Files input size", file_flow.size())
         input_flow = ReadFilesFlow(file_flow)
         #print("Readed input size", input_flow.size())
-        input_flow = build_flow(input_flow, cfg, common_cfg)
+        input_flow = build_flow(input_flow, cfg, common_cfg, endless=endless)
         #print("Augmented input size", input_flow.size())
     elif np.alltrue([isinstance(d, dict) for d in cfg.inputs]):
         # all inputs are data
@@ -32,12 +32,12 @@ def get_train_data(cfg, common_cfg, endless=True):
         print("Mixed size:", input_flow.size())
         if endless:
             input_flow = EndlessData(input_flow)
-        input_flow = build_flow(input_flow, cfg, common_cfg)
+        input_flow = build_flow(input_flow, cfg, common_cfg, endless=endless)
     else:
         raise Exception("Not supported types of inputs, should be all paths or all dataflow cfg dictionary" + str(cfg))
     return input_flow
 
-def build_flow(input_flow, cfg, common_cfg):
+def build_flow(input_flow, cfg, common_cfg, endless=True):
     cfg = cfg.join(common_cfg)
     ds_imgs = input_flow
 
@@ -73,4 +73,14 @@ def build_flow(input_flow, cfg, common_cfg):
         if need_remove_custom_params:
             print("Create RemoveCustomParamsFlow")
             ds_imgs = RemoveCustomParamsFlow(ds_imgs)
+    if cfg.workers:
+        print("Starting %i workers for fetch data with size %i..." % (cfg.workers, ds_imgs.size()))
+        ds_imgs = PrefetchDataZMQ(ds_imgs, nr_proc=cfg.workers)
+        if endless:
+            ds_imgs._size = -1 # for endless loop # HACK
+
+    if cfg.shuffle_buffer:
+        ds_imgs = LocallyShuffleData(ds_imgs, cfg.shuffle_buffer)
+        if endless:
+            ds_imgs.size = lambda : 2**64 # HACK
     return ds_imgs
