@@ -23,33 +23,36 @@ class PixelShuffle(Layer):
         assert input_shape[3] % (self.zoom ** 2) == 0
         return (input_shape[0], input_shape[1] * self.zoom, input_shape[2] * self.zoom, input_shape[3] // (self.zoom ** 2))
 
+def get_input_shape(common_cfg, batch_size=True, input=True):
+    """
+    Get shape based on common_cfg
+    :param common_cfg: AttrDict config
+    :param batch_size: use batch_size in shape
+    :param input: return input shape if True and output (HR) shape if false
+    :return: list shape
+    """
+    shape = [None, None, None, None]
+    # for multiframe we need additional dimension (only for input)
+    if input and common_cfg.frames and  common_cfg.frames > 1:
+        shape.append(None)
+        shape[1] = common_cfg.frames
+
+    if batch_size:
+        shape[0] = common_cfg.batch_size
+
+    shape[-1] = common_cfg.channels
+    shape[-2] = common_cfg.batch_shape * (1 if input else common_cfg.zoom)
+    shape[-3] = common_cfg.batch_shape * (1 if input else common_cfg.zoom)
+    return shape
+
+
 def create_input(cfg, input=None):
     """ Return Input layer with right shape based on cfg or input tensor """
 
     name = cfg.name + '_input'
-    if input is not None:
-        shape = list(K.get_session().run(tf.shape(input)))
-        print("Input shape", shape)
-        return Input(batch_shape=shape, tensor=input, name=name)
-    else:
-        shape = [None, None, None, None]
-        # for multiframe we need additional dimension
-
-        if cfg.get('frames', 1) > 1:
-            shape.append(None)
-            shape[1] = cfg.frames
-
-        if cfg.get('batch_size', None):
-            shape[0] = cfg.batch_size
-
-        if cfg.get('batch_shape', None):
-            shape[-2] = cfg.batch_shape
-            shape[-3] = cfg.batch_shape
-
-        if cfg.get('channels', None):
-            shape[-1] = cfg.channels
-
-        return Input(batch_shape=shape, name = name)
+    shape = get_input_shape(cfg)
+    print("create_input shape", shape)
+    return Input(batch_shape=shape, tensor=input, name=name)
 
 
 def conv2d_bn(filters, kernel_size, strides=(1, 1), padding='same', activation=None, bn=False, name=None):

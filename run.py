@@ -11,8 +11,9 @@ from nnpix.parser import Parser
 from nnpix.common import AttrDict, list_shape
 
 from nnpix.nn.model import get_model
-from nnpix.dataflow import get_train_data
+from nnpix.dataflow import get_train_data, PrintShape
 
+from nnpix.trainer.train import train
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--file', '-f', type=str, default=None, help="Input file with YAML experiment configuration")
@@ -40,7 +41,7 @@ pprint((exp.train.data))
 #     print(v.name)
 
 
-t = time.time()
+#t = time.time()
 ds = get_train_data(exp.train.data, exp.common)
 #ds.reset_state()
 #itr = ds.get_data()
@@ -48,7 +49,10 @@ ds = get_train_data(exp.train.data, exp.common)
 #    b = next(itr)
 #    print(i, list_shape(b))
 
-ds1 = BatchData(ds, 4, use_list=True)
-TestDataSpeed(ds1, 200).start()
+ds = BatchData(ds, 4, use_list=True)
+#ds = PrintShape(ds)
+#TestDataSpeed(ds1, 200).start()
 
-print("Total time", time.time() - t)
+#print("Total time", time.time() - t)
+
+train(exp.train, exp.models.gen, exp.common, ds)

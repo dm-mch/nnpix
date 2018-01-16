@@ -4,8 +4,8 @@ from pprint import pprint
 from tensorpack import AugmentImageComponents, RandomMixData, PrefetchDataZMQ, LocallyShuffleData
 
 from .fileflow import get_fileflow
-from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList, RemoveCustomParamsFlow
-from .common import ReadFilesFlow, EndlessData
+from .imgaug import ImageAugmentorListProxy, NotSafeAugmentorList
+from .common import ReadFilesFlow, EndlessData, RemoveCustomParamsFlow, ListToNumpyFlow
 from ..registry import AugmentRegistry, DataFlowRegistry
 
 
@@ -71,6 +71,10 @@ def build_flow(input_flow, cfg, common_cfg, endless=True):
         if need_remove_custom_params:
             print("Create RemoveCustomParamsFlow")
             ds_imgs = RemoveCustomParamsFlow(ds_imgs)
+
+    if common_cfg.frames and common_cfg.frames > 1:
+        ds_imgs = ListToNumpyFlow(ds_imgs, 1)
+
     if cfg.workers:
         print("Starting %i workers for fetch data with size %i..." % (cfg.workers, ds_imgs.size()))
         ds_imgs = PrefetchDataZMQ(ds_imgs, nr_proc=cfg.workers)
@@ -81,4 +85,5 @@ def build_flow(input_flow, cfg, common_cfg, endless=True):
         ds_imgs = LocallyShuffleData(ds_imgs, cfg.shuffle_buffer)
         if endless:
             ds_imgs.size = lambda : 2**64 # HACK
+
     return ds_imgs

@@ -21,9 +21,9 @@
 
     common: # maybe need some common section for share params. I often used batch info in NN create function
         batch_size: 4
-        batch_shape: 128 # input images crops 128x128
-        zoom: 3
-        channels: 1 #
+        batch_shape: 64 # input images crops 128x128
+        zoom: 2
+        channels: 3 #
         frames: 2 # for multiframe support
 
     train:
@@ -41,13 +41,15 @@
                 #- resize: {value: 3, dp_index: 1} # downscale only seeds as zoom=3 (1 dimension in train.data.inputs)
                 - blur: {value: [1,4], dp_index: 1, shared: False}
                 - back_transform: 2 # scale factor for back-transform
-                - crop: {value: 20, scales: [2, 1]} # Number of random crops per image, scales - how scales crop size
+                - crop: {value: 30, scales: [2, 1]} # Number of random crops per image, scales - how scales crop size
                 - normal-noise: {value: [0,20], clip: [0,255], dp_index: 1, shared: False}
                 - normalize: {div: 255, minus: 0.5, dp_index: [0,1]}
                 #- print: {path: './input_debug', each: 5, clear: True}
 
         type: gan
-        lr: 1e-4
+        lr: 0.0001
+        epochs: 100
+        epoch_size: 100
         # possible LR types
         #lr: [schedule: [[0,0.001], [100,0.0001]], interpolate: linear}
         #lr: path/to/file/with/lr/scheduler.txt for manual change on training time

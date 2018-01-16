@@ -4,7 +4,7 @@ from tensorpack.utils.utils import get_rng
 
 from ...common import parse_value
 
-__all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'CfgDataFlow', 'NotSafeAugmentorList', 'RemoveCustomParamsFlow']
+__all__ = ['ImageAugmentorListProxy', 'CfgImageAugmentor', 'CfgDataFlow', 'NotSafeAugmentorList']
 
 class ImageAugmentorListProxy(ImageAugmentor):
     """ Augment list of images with shared params with input augmentator """
@@ -93,15 +93,6 @@ class CfgDataFlow(ProxyDataFlow):
     def is_add_custom_params(self):
         """ Dataflow should return True if is is add custom_params dict at the end of dp """
         return False
-
-
-class RemoveCustomParamsFlow(ProxyDataFlow):
-    """ Remove last dict with custom params from datapoint """
-    def get_data(self):
-        for d in super(RemoveCustomParamsFlow, self).get_data():
-            if isinstance(d[-1], dict) and 'custom_params' in d[-1]:
-                d = d[:-1]
-            yield d
 
 
 # rewrite for remove assertion: assert img.ndim in [2, 3], img.ndim

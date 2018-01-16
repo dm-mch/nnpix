@@ -1,8 +1,11 @@
 import cv2
+import numpy as np
 
 from tensorpack.dataflow import ProxyDataFlow
 
-__all__ = ['ReadFilesFlow']
+from ..common import list_shape
+
+__all__ = ['ReadFilesFlow', 'RemoveCustomParamsFlow', 'ListToNumpyFlow', 'EndlessData', 'PrintShape']
 
 class ReadFilesFlow(ProxyDataFlow):
 
@@ -63,3 +66,29 @@ class EndlessData(ProxyDataFlow):
                     yield dp
 
 
+class RemoveCustomParamsFlow(ProxyDataFlow):
+    """ Remove last dict with custom params from datapoint """
+    def get_data(self):
+        for d in super(RemoveCustomParamsFlow, self).get_data():
+            if isinstance(d[-1], dict) and 'custom_params' in d[-1]:
+                d = d[:-1]
+            yield d
+
+class ListToNumpyFlow(ProxyDataFlow):
+    """ Merge list to one numpy array """
+    def __init__(self, ds, index):
+        super(ListToNumpyFlow, self).__init__(ds)
+        self.index = index
+
+    def get_data(self):
+        for d in super(ListToNumpyFlow, self).get_data():
+            d[self.index] = np.array(d[self.index])
+            yield d
+
+
+class PrintShape(ProxyDataFlow):
+    """ For debug only: Print shapes of datapoints """
+    def get_data(self):
+        for d in super(PrintShape, self).get_data():
+            print("PrintShape:", list_shape(d))
+            yield d
